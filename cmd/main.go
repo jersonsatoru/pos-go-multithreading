@@ -1,22 +1,26 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
+
+	"github.com/jersonsatoru/pos-go-multithreading/internal/gateways"
 )
 
 func main() {
+	if len(os.Args) == 1 {
+		fmt.Println("Passe o argumento de CEP: Ex `go run ./cmd/main.go 08710690`")
+		return
+	}
 	cep := os.Args[1]
 
 	ch1 := make(chan interface{})
 	ch2 := make(chan interface{})
 
-	go viaCEP(ch1, cep)
+	// go gateways.ViaCEP(ch1, cep)
 
-	go apiCEP(ch2, cep)
+	go gateways.ApiCEP(ch2, cep)
 
 	select {
 	case data := <-ch1:
@@ -28,26 +32,4 @@ func main() {
 	case <-time.After(time.Second * 1):
 		panic("Timeout, passou 1 segundo")
 	}
-}
-
-func viaCEP(ch chan interface{}, cep string) {
-	res, err := http.Get("http://viacep.com.br/ws/" + cep + "/json/")
-	if err != nil {
-		panic(err)
-	}
-
-	var data interface{}
-	json.NewDecoder(res.Body).Decode(&data)
-	ch <- data
-}
-
-func apiCEP(ch chan interface{}, cep string) {
-	res, err := http.Get("https://cdn.apicep.com/file/apicep/" + cep + ".json")
-	if err != nil {
-		panic(err)
-	}
-
-	var data interface{}
-	json.NewDecoder(res.Body).Decode(&data)
-	ch <- data
 }
