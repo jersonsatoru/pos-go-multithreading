@@ -18,7 +18,7 @@ func main() {
 	ch1 := make(chan interface{})
 	ch2 := make(chan interface{})
 
-	// go gateways.ViaCEP(ch1, cep)
+	go gateways.ViaCEP(ch1, cep)
 
 	go gateways.ApiCEP(ch2, cep)
 
